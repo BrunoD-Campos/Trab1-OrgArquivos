@@ -1,0 +1,45 @@
+/*
+Trabalho 1 de SCC0215 - Organização de Arquivos
+Bruno Dias de Campos Filho - 16832658
+Pedro Tiago Biffi - 16827777
+*/
+
+// Bibliotecas do C
+#include <stdio.h>
+#include <stdlib.h>
+
+// As 6 funcionalidades 
+#include "CreateTable.c"
+#include "Insert.c"
+#include "Remove.c"
+#include "Select.c"
+#include "SelectWhere.c"
+#include "Update.c"
+
+int main(){
+    //Lendo entrada da funcionalidade
+    int comando;
+    scanf("%d", &comando);
+    
+    switch (comando){
+        case 1:
+            CREATE_TABLE();
+            break;
+        case 2:
+            SELECT();
+            break;
+        case 3:
+            SELECT_WHERE();
+            break;
+        case 4:
+            REMOVE();
+            break;
+        case 5:
+            INSERT();
+            break;
+        case 6:
+            UPDATE();
+            break;
+        
+    }
+}
