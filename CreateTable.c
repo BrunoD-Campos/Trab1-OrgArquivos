@@ -1,48 +1,11 @@
 /*
-Implementação da funcionalidade 1 de criação de tabela
+Implementação da funcionalidade 1 de Criação de Tabela
 Bruno Dias de Campos Filho - 16832658
 Pedro Tiago Biffi - 16827777
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "fornecidas.c"
-
-#define TAM_CABECALHO 17
-#define TAM_REGISTRO 80
-#define TAM_MAX_LINHA_CSV 128 
-
-typedef struct
-{
-    char status;
-    int topo;
-    int proxRRN;
-    int nroEstacoes;
-    int nroParesEstacoes;
-} CABECALHO;
-
-typedef struct
-{
-    char removido;
-    int proximo;
-    int codEstacao; 
-    int codLinha;
-    int codProxEstacao;
-    int distProxEstacao;
-    int codLinhaIntegra;
-    int codEstacaoIntegra;
-    int tamNomeEstacao;
-    char* nomeEstacao;  
-    int tamNomeLinha;
-    char* nomeLinha;
-} REGISTRO;
-
-typedef struct
-{
-    char** nomeEstacao;
-    int tamLista;
-} ListaNomesEstacao;
+#include "fundamentals.c"
 
 // Função para sobrescrever o registro de cabeçalho do arquivo
 void atualizarCabecalho(FILE* arqBIN, CABECALHO* regCabecalho)
@@ -161,9 +124,9 @@ void CREATE_TABLE()
     cabecalhoInicial.nroParesEstacoes = 0;
     atualizarCabecalho(arqBIN, &cabecalhoInicial);
 
-    REGISTRO RegistroTransferencia;
-    RegistroTransferencia.removido = '0';
-    RegistroTransferencia.proximo = -1;
+    REGISTRO RegTransferencia;
+    RegTransferencia.removido = '0';
+    RegTransferencia.proximo = -1;
     
     char linha[TAM_MAX_LINHA_CSV];
     fgets(linha, TAM_MAX_LINHA_CSV, arqCSV); 
@@ -177,14 +140,14 @@ void CREATE_TABLE()
         //Higiene vital que evita o Segfault no último campo do CSV
         linha[strcspn(linha, "\r\n")] = '\0';
 
-        LerRegistroCSV(linha, &RegistroTransferencia);
-        EscreverRegistroBin(arqBIN, &RegistroTransferencia);
+        LerRegistroCSV(linha, &RegTransferencia);
+        EscreverRegistroBin(arqBIN, &RegTransferencia);
         cabecalhoInicial.proxRRN++;
 
         char igualEncontrado = '0';
         for(int i = 0; i < lista.tamLista; i++)
         {
-            if(!strcmp(RegistroTransferencia.nomeEstacao, lista.nomeEstacao[i]))
+            if(!strcmp(RegTransferencia.nomeEstacao, lista.nomeEstacao[i]))
             {
                 igualEncontrado = '1';
                 break;
@@ -194,20 +157,22 @@ void CREATE_TABLE()
         if(igualEncontrado == '0')
         {
             lista.nomeEstacao = realloc(lista.nomeEstacao, (lista.tamLista + 1) * sizeof(char*)); 
-            lista.nomeEstacao[lista.tamLista] = (char*)calloc(strlen(RegistroTransferencia.nomeEstacao) + 1, sizeof(char)); 
-            strcpy(lista.nomeEstacao[lista.tamLista], RegistroTransferencia.nomeEstacao);   
+            lista.nomeEstacao[lista.tamLista] = (char*)calloc(strlen(RegTransferencia.nomeEstacao) + 1, sizeof(char)); 
+            strcpy(lista.nomeEstacao[lista.tamLista], RegTransferencia.nomeEstacao);   
             lista.tamLista++;
             cabecalhoInicial.nroEstacoes++;
         }
 
         //A próxima estação tem que existir (!= -1) para configurar um par
-        if(RegistroTransferencia.codEstacao != RegistroTransferencia.codProxEstacao && RegistroTransferencia.codProxEstacao != -1)
+        if(RegTransferencia.codProxEstacao != -1){
             cabecalhoInicial.nroParesEstacoes++;
+        }
             
-        // CORREÇÃO DE MEMORY LEAK: Libera a memória das strings recém-lidas do CSV nesta iteração
-        free(RegistroTransferencia.nomeEstacao);
-        if (RegistroTransferencia.nomeLinha != NULL) {
-            free(RegistroTransferencia.nomeLinha);
+            
+        // Libera a memória das strings recém-lidas do CSV nesta iteração
+        free(RegTransferencia.nomeEstacao);
+        if (RegTransferencia.nomeLinha != NULL) {
+            free(RegTransferencia.nomeLinha);
         }
     }
 
@@ -215,7 +180,7 @@ void CREATE_TABLE()
     //Gravar o cabeçalho de volta no disco para consolidar as alterações!
     atualizarCabecalho(arqBIN, &cabecalhoInicial);
 
-    // CORREÇÃO DE MEMORY LEAK: Libera todo o array dinâmico da lista auxiliar
+    // Libera todo o array dinâmico da lista auxiliar
     for(int i = 0; i < lista.tamLista; i++) {
         free(lista.nomeEstacao[i]);
     }
