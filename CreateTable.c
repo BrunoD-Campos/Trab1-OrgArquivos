@@ -4,8 +4,7 @@ Bruno Dias de Campos Filho - 16832658
 Pedro Tiago Biffi - 16827777
 */
 
-#include "fornecidas.c"
-#include "fundamentals.c"
+
 
 // Função para sobrescrever o registro de cabeçalho do arquivo
 void atualizarCabecalho(FILE* arqBIN, CABECALHO* regCabecalho)
@@ -64,7 +63,7 @@ void LerRegistroCSV(char *linha, REGISTRO *reg)
     lerIntCSV(&reg->codProxEstacao, &ptr);    
     lerIntCSV(&reg->distProxEstacao, &ptr);
     lerIntCSV(&reg->codLinhaIntegra, &ptr);
-    lerIntCSV(&reg->codEstacaoIntegra, &ptr);
+    lerIntCSV(&reg->codEstIntegra, &ptr);
 
     return;
 }
@@ -83,7 +82,7 @@ void EscreverRegistroBin(FILE *arqBIN, REGISTRO *reg)
     fwrite(&reg->codProxEstacao, sizeof(int), 1, arqBIN);
     fwrite(&reg->distProxEstacao, sizeof(int), 1, arqBIN);
     fwrite(&reg->codLinhaIntegra, sizeof(int), 1, arqBIN);
-    fwrite(&reg->codEstacaoIntegra, sizeof(int), 1, arqBIN);
+    fwrite(&reg->codEstIntegra, sizeof(int), 1, arqBIN);
     BytesEscritos += 24; 
 
     fwrite(&reg->tamNomeEstacao, sizeof(int), 1, arqBIN);

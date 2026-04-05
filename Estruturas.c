@@ -1,5 +1,5 @@
-#ifndef fundamentals
-#define fundamentals
+#ifndef ESTRUTURAS
+#define ESTRUTURAS
 
 // Arquivo com estruturas fundamentais para o projeto
 
@@ -28,7 +28,7 @@ typedef struct
     int codProxEstacao;
     int distProxEstacao;
     int codLinhaIntegra;
-    int codEstacaoIntegra;
+    int codEstIntegra;
     int tamNomeEstacao;
     char* nomeEstacao;  
     int tamNomeLinha;

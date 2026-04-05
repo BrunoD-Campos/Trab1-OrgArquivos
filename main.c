@@ -4,18 +4,23 @@ Bruno Dias de Campos Filho - 16832658
 Pedro Tiago Biffi - 16827777
 */
 
-// Bibliotecas do C
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-//#include "fundamentals.c"
 
-// As 6 funcionalidades 
+// Definições de tipos
+#include "Estruturas.c" 
+
+// Funções que todos os outros módulos podem usar
+#include "FuncAuxiliares.c" 
+#include "fornecidas.c"
+
+// 6 Funcionalidades
 #include "CreateTable.c"
-#include "Insert.c"
-#include "Remove.c"
 #include "SelectFrom.c"
 #include "SelectWhere.c"
+#include "Remove.c"
+#include "Insert.c"
 #include "Update.c"
 
 int main(){
