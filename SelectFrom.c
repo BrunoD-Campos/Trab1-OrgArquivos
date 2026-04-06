@@ -18,7 +18,7 @@ void SELECT(){
     
     if(!(arqBIN = fopen(arqBIN_nome,"r")))   // Abre para leitura em binário
     {
-        printf("Falha no processamento do arquivo->\n");
+        printf("Falha no processamento do arquivo.\n");
         return;
     }
     
