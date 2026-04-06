@@ -1,6 +1,10 @@
 #ifndef FUNC_AUX
 #define FUNC_AUX
 
+#include "Estruturas.c"
+#include <stdio.h>
+#include <stdbool.h>
+
 void imprimeCampoInt(int campo)
 {
     if(campo != -1)
@@ -32,8 +36,6 @@ void imprimirRegistro(REGISTRO* reg)
     return;
 }
 
-
-
 void lerCabecalhoBin(FILE* arqBIN, CABECALHO* cabecalho)
 {
     fseek(arqBIN, 0, SEEK_SET);
@@ -44,6 +46,18 @@ void lerCabecalhoBin(FILE* arqBIN, CABECALHO* cabecalho)
     fread(&cabecalho->nroEstacoes, sizeof(int), 1, arqBIN);
     fread(&cabecalho->nroParesEstacoes, sizeof(int), 1, arqBIN);
     
+    return;
+}
+
+// Função para sobrescrever o registro de cabeçalho do arquivo
+void atualizarCabecalho(FILE* arqBIN, CABECALHO* regCabecalho)
+{
+    fseek(arqBIN, 0, SEEK_SET);
+    fwrite(&regCabecalho->status, sizeof(char), 1, arqBIN);
+    fwrite(&regCabecalho->topo, sizeof(int), 1, arqBIN);
+    fwrite(&regCabecalho->proxRRN, sizeof(int), 1, arqBIN);
+    fwrite(&regCabecalho->nroEstacoes, sizeof(int), 1, arqBIN);
+    fwrite(&regCabecalho->nroParesEstacoes, sizeof(int), 1, arqBIN);
     return;
 }
 
@@ -90,6 +104,39 @@ void LerRegistroBin(FILE* arqBIN, REGISTRO* reg, int PosicaoRRN){
     return;
 }
 
+// Função para escrever um registro no arquivo binário
+void EscreverRegistroBin(FILE *arqBIN, REGISTRO *reg)
+{
+    int BytesEscritos = 0;
+
+    fwrite(&reg->removido, sizeof(char), 1, arqBIN);
+    fwrite(&reg->proximo, sizeof(int), 1, arqBIN);
+    BytesEscritos += 5; 
+
+    fwrite(&reg->codEstacao, sizeof(int), 1, arqBIN);
+    fwrite(&reg->codLinha, sizeof(int), 1, arqBIN);
+    fwrite(&reg->codProxEstacao, sizeof(int), 1, arqBIN);
+    fwrite(&reg->distProxEstacao, sizeof(int), 1, arqBIN);
+    fwrite(&reg->codLinhaIntegra, sizeof(int), 1, arqBIN);
+    fwrite(&reg->codEstIntegra, sizeof(int), 1, arqBIN);
+    BytesEscritos += 24; 
+
+    fwrite(&reg->tamNomeEstacao, sizeof(int), 1, arqBIN);
+    fwrite(reg->nomeEstacao, sizeof(char), reg->tamNomeEstacao, arqBIN);
+    fwrite(&reg->tamNomeLinha, sizeof(int), 1, arqBIN);
+    
+    if (reg->tamNomeLinha > 0 && reg->nomeLinha != NULL) {
+        fwrite(reg->nomeLinha, sizeof(char), reg->tamNomeLinha, arqBIN);
+    }
+    
+    BytesEscritos += 8 + reg->tamNomeEstacao + reg->tamNomeLinha;
+
+    for(int i = 0; i < TAM_REGISTRO - BytesEscritos; i++)
+        fputc('$', arqBIN);
+    
+    return;
+}
+
 CRITERIO campoParaEnum(char* nomeCampo)
 {
     if(!strcmp(nomeCampo, "codEstacao")) return codEstacao;
@@ -131,7 +178,7 @@ void leStringCampoBusca(int* tamCampo, char** stringCampo, char* strInput)
     return;
 }
 
-// Compara dois registros e retorna true caso sejam, e false caso contrário
+// Compara dois registros e retorna true caso sejam iguais, e false caso contrário
 // Se estiver sendo usado em SelectWhere, coloque o regBusca no primeiro parâmetro
 bool ComparaRegistros(REGISTRO* filtro, REGISTRO* comparado) {
     
@@ -161,6 +208,70 @@ bool ComparaRegistros(REGISTRO* filtro, REGISTRO* comparado) {
     #undef VERIFICA_STR
 }
 
+// Função para inicializar um registro de busca usado em BuscaRegistro()
+void initRegBusca(REGISTRO* regBusca, int qtdCampos)
+{
+    regBusca->codEstacao = -2;
+    regBusca->codLinha = -2;
+    regBusca->codProxEstacao = -2;
+    regBusca->distProxEstacao = -2;
+    regBusca->codLinhaIntegra = -2;
+    regBusca->codEstIntegra = -2;
+    regBusca->nomeEstacao = NULL;
+    regBusca->nomeLinha = NULL;
+
+    for(int i = 0; i < qtdCampos; i++)  
+        {
+            char idCampo[32]; 
+            scanf("%s", idCampo);
+            
+            CRITERIO nomeCampo = campoParaEnum(idCampo);
+            char stringBuscada[50] = "";  
+            
+            // Feito pois estava dando um erro ao ler inteiros com ScanQuoteString()
+            if (nomeCampo == nomeEstacao || nomeCampo == nomeLinha) {
+                ScanQuoteString(stringBuscada);
+            } else {
+                scanf("%s", stringBuscada);
+            }
+
+            switch(nomeCampo)
+            {
+                case nomeEstacao:
+                    leStringCampoBusca(regBusca->tamNomeEstacao, regBusca->nomeEstacao, stringBuscada);
+                    break;
+                case nomeLinha:
+                    leStringCampoBusca(regBusca->tamNomeLinha, regBusca->nomeLinha, stringBuscada);
+                    break;
+                case codEstacao:
+                    leIntCampoBusca(regBusca->codEstacao, stringBuscada);
+                    break;
+                case codLinha:
+                    leIntCampoBusca(regBusca->codLinha, stringBuscada);
+                    break;
+                case codProxEstacao:
+                    leIntCampoBusca(regBusca->codProxEstacao, stringBuscada);
+                    break;
+                case distProxEstacao:
+                    leIntCampoBusca(regBusca->distProxEstacao, stringBuscada);
+                    break;
+                case codEstIntegra:
+                    leIntCampoBusca(regBusca->codEstIntegra, stringBuscada);
+                    break;
+                case codLinhaIntegra:
+                    leIntCampoBusca(regBusca->codLinhaIntegra, stringBuscada);
+                    break;
+                default:
+                    printf("Falha de processamento do arquivo\n");
+                    return;
+            }
+        }  
+    
+    return;
+}
+
+
+//
 void BuscaRegistro(int operacao, char* arqBIN_nome) {
     
     FILE* arqBIN = fopen(arqBIN_nome, "rb+");
@@ -183,6 +294,7 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
         fwrite(&cabecalho.status, sizeof(char), 1, arqBIN);
     }
 
+    // Registro para cada registro lido do arquivo
     REGISTRO regLido;
     int contador = 0;
 
@@ -192,64 +304,13 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
         contador++;
         REGISTRO regBusca;
         
-        regBusca.codEstacao = -2;
-        regBusca.codLinha = -2;
-        regBusca.codProxEstacao = -2;
-        regBusca.distProxEstacao = -2;
-        regBusca.codLinhaIntegra = -2;
-        regBusca.codEstIntegra = -2;
-        regBusca.nomeEstacao = NULL;
-        regBusca.nomeLinha = NULL;
-        
         int qtdCampos = 0;
         scanf("%d", &qtdCampos);
         
-        for(int i = 0; i < qtdCampos; i++)  
-        {
-            char idCampo[32]; 
-            scanf("%s", idCampo);
-            
-            CRITERIO nomeCampo = campoParaEnum(idCampo);
-            char stringBuscada[50] = "";  
-            
-            if (nomeCampo == nomeEstacao || nomeCampo == nomeLinha) {
-                ScanQuoteString(stringBuscada);
-            } else {
-                scanf("%s", stringBuscada);
-            }
-
-            switch(nomeCampo)
-            {
-                case nomeEstacao:
-                    leStringCampoBusca(&regBusca.tamNomeEstacao, &regBusca.nomeEstacao, stringBuscada);
-                    break;
-                case nomeLinha:
-                    leStringCampoBusca(&regBusca.tamNomeLinha, &regBusca.nomeLinha, stringBuscada);
-                    break;
-                case codEstacao:
-                    leIntCampoBusca(&regBusca.codEstacao, stringBuscada);
-                    break;
-                case codLinha:
-                    leIntCampoBusca(&regBusca.codLinha, stringBuscada);
-                    break;
-                case codProxEstacao:
-                    leIntCampoBusca(&regBusca.codProxEstacao, stringBuscada);
-                    break;
-                case distProxEstacao:
-                    leIntCampoBusca(&regBusca.distProxEstacao, stringBuscada);
-                    break;
-                case codEstIntegra:
-                    leIntCampoBusca(&regBusca.codEstIntegra, stringBuscada);
-                    break;
-                case codLinhaIntegra:
-                    leIntCampoBusca(&regBusca.codLinhaIntegra, stringBuscada);
-                    break;
-                default:
-                    printf("Falha de processamento do arquivo\n");
-                    return;
-            }
-        }  
-
+        // Settando o regBusca devidamente, colocando todos os 
+        // valores inválidos e então lendo os campos do terminal
+        initRegBusca(&regBusca, qtdCampos);
+        
         int RRN = 0;
         bool encontrou = false; 
 
@@ -259,47 +320,49 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
         {
             LerRegistroBin(arqBIN, &regLido, RRN);  
             
+            // ?
             if(qtdCampos == 0) {
                 break;
             }
 
             if(regLido.removido == '0' && ComparaRegistros(&regBusca, &regLido)) {
                 
-                encontrou = true; 
+                encontrou = true;
                 
-                if(operacao == 1){ 
+                if(operacao == 1){
                     imprimirRegistro(&regLido);
                     printf("\n");
                 }        
-                else if (operacao == 2) { 
-                    int antigo_topo = cabecalho.topo;
-
+                else if (operacao == 2) {
                     long OffsetRegAtual = 17 + (RRN * 80);
                     fseek(arqBIN, OffsetRegAtual, SEEK_SET);
 
-                    char MarcaRemovido = '1';
-                    fwrite(&MarcaRemovido, sizeof(char), 1, arqBIN);
-                    fwrite(&antigo_topo, sizeof(int), 1, arqBIN);
+                    regLido.removido = '1'; 
+                    regLido.proximo = cabecalho.topo;
+                    fwrite(&regLido.removido, sizeof(char), 1, arqBIN);
+                    fwrite(&regLido.proximo, sizeof(int), 1, arqBIN);
 
                     cabecalho.topo = RRN;
                     
-                    
+                    // Se tiver outra estação com mesmo nome não podemos diminuir isto
                     cabecalho.nroEstacoes--;
                     
+                    // Mesma lógica nesta parte eu acho
                     if(regLido.codProxEstacao != -1) {
                         cabecalho.nroParesEstacoes--;
                     }
                     
-                    regLido.removido = '1'; 
                 }
             }
+            
             
             if(regLido.nomeEstacao) free(regLido.nomeEstacao);
             if(regLido.nomeLinha) free(regLido.nomeLinha);
             
             RRN++;
         }
-
+        
+        atualizarCabecalho(arqBIN, &cabecalho);
         
         if(!encontrou && operacao == 1) {
             printf("Registro inexistente.\n");
@@ -308,23 +371,15 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
         if(operacao == 1) {
             printf("\n"); 
         }
-
         
         if(regBusca.nomeEstacao) free(regBusca.nomeEstacao);
-        if(regBusca.nomeLinha) free(regBusca.nomeLinha);
-        
-    } 
+        if(regBusca.nomeLinha) free(regBusca.nomeLinha);   
+    }
 
     
     if (operacao == 2) {
         cabecalho.status = '1';
-        fseek(arqBIN, 0, SEEK_SET);
-        
-        fwrite(&cabecalho.status, sizeof(char), 1, arqBIN);
-        fwrite(&cabecalho.topo, sizeof(int), 1, arqBIN);
-        fwrite(&cabecalho.proxRRN, sizeof(int), 1, arqBIN);
-        fwrite(&cabecalho.nroEstacoes, sizeof(int), 1, arqBIN);
-        fwrite(&cabecalho.nroParesEstacoes, sizeof(int), 1, arqBIN);
+        atualizarCabecalho(arqBIN, &cabecalho);
     }
 
     fclose(arqBIN);

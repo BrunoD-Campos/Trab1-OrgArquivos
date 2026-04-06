@@ -21,7 +21,7 @@ Pedro Tiago Biffi - 16827777
 #include "CreateTable.c"
 #include "SelectFrom.c"
 #include "SelectWhere.c"
-#include "Remove.c"
+#include "Delete.c"
 #include "Insert.c"
 #include "Update.c"
 
@@ -41,7 +41,7 @@ int main(){
             SELECT_WHERE();
             break;
         case 4:
-            REMOVE();
+            DELETE();
             break;
         case 5:
             INSERT();

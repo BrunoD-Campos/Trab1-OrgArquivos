@@ -5,19 +5,6 @@ Pedro Tiago Biffi - 16827777
 */
 
 
-
-// Função para sobrescrever o registro de cabeçalho do arquivo
-void atualizarCabecalho(FILE* arqBIN, CABECALHO* regCabecalho)
-{
-    fseek(arqBIN, 0, SEEK_SET);
-    fwrite(&regCabecalho->status, sizeof(char), 1, arqBIN);
-    fwrite(&regCabecalho->topo, sizeof(int), 1, arqBIN);
-    fwrite(&regCabecalho->proxRRN, sizeof(int), 1, arqBIN);
-    fwrite(&regCabecalho->nroEstacoes, sizeof(int), 1, arqBIN);
-    fwrite(&regCabecalho->nroParesEstacoes, sizeof(int), 1, arqBIN);
-    return;
-}
-
 // Função auxiliar com proteção contra falha de segmentação
 void lerIntCSV(int* campoRegistro, char** separationPtr)
 {
@@ -65,39 +52,6 @@ void LerRegistroCSV(char *linha, REGISTRO *reg)
     lerIntCSV(&reg->codLinhaIntegra, &ptr);
     lerIntCSV(&reg->codEstIntegra, &ptr);
 
-    return;
-}
-
-// Função para escrever um registro no arquivo binário
-void EscreverRegistroBin(FILE *arqBIN, REGISTRO *reg)
-{
-    int BytesEscritos = 0;
-
-    fwrite(&reg->removido, sizeof(char), 1, arqBIN);
-    fwrite(&reg->proximo, sizeof(int), 1, arqBIN);
-    BytesEscritos += 5; 
-
-    fwrite(&reg->codEstacao, sizeof(int), 1, arqBIN);
-    fwrite(&reg->codLinha, sizeof(int), 1, arqBIN);
-    fwrite(&reg->codProxEstacao, sizeof(int), 1, arqBIN);
-    fwrite(&reg->distProxEstacao, sizeof(int), 1, arqBIN);
-    fwrite(&reg->codLinhaIntegra, sizeof(int), 1, arqBIN);
-    fwrite(&reg->codEstIntegra, sizeof(int), 1, arqBIN);
-    BytesEscritos += 24; 
-
-    fwrite(&reg->tamNomeEstacao, sizeof(int), 1, arqBIN);
-    fwrite(reg->nomeEstacao, sizeof(char), reg->tamNomeEstacao, arqBIN);
-    fwrite(&reg->tamNomeLinha, sizeof(int), 1, arqBIN);
-    
-    if (reg->tamNomeLinha > 0 && reg->nomeLinha != NULL) {
-        fwrite(reg->nomeLinha, sizeof(char), reg->tamNomeLinha, arqBIN);
-    }
-    
-    BytesEscritos += 8 + reg->tamNomeEstacao + reg->tamNomeLinha;
-
-    for(int i = 0; i < TAM_REGISTRO - BytesEscritos; i++)
-        fputc('$', arqBIN);
-    
     return;
 }
 

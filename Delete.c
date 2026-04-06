@@ -6,7 +6,7 @@ Pedro Tiago Biffi - 16827777
 
 #include <stdio.h>
 
-void REMOVE(){
+void DELETE(){
     char arqBIN_nome[32];
     scanf("%s", arqBIN_nome); 
     

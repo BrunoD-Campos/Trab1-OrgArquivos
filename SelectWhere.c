@@ -9,8 +9,5 @@ void SELECT_WHERE(){
     char arqBIN_nome[32];
     scanf("%s", arqBIN_nome); 
     
-    
-    BuscaRegistro(1, arqBIN_nome); 
-    
-    
+    BuscaRegistro(1, arqBIN_nome);   
 }
