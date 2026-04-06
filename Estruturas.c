@@ -35,6 +35,18 @@ typedef struct
     char* nomeLinha;
 } REGISTRO;
 
+typedef enum
+{
+    codEstacao,         // 0
+    nomeEstacao,        // 1
+    codLinha,           // 2
+    nomeLinha,          // 3
+    codProxEstacao,     // 4
+    distProxEstacao,    // 5
+    codLinhaIntegra,    // 6
+    codEstIntegra       // 7
+}CRITERIO;
+
 typedef struct
 {
     char** nomeEstacao;

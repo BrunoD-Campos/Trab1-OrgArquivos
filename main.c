@@ -4,16 +4,18 @@ Bruno Dias de Campos Filho - 16832658
 Pedro Tiago Biffi - 16827777
 */
 
+// Bibliotecas padrao do C
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // Definições de tipos
 #include "Estruturas.c" 
 
 // Funções que todos os outros módulos podem usar
-#include "FuncAuxiliares.c" 
 #include "fornecidas.c"
+#include "FuncAuxiliares.c" 
 
 // 6 Funcionalidades
 #include "CreateTable.c"
@@ -47,6 +49,8 @@ int main(){
         case 6:
             UPDATE();
             break;
-        
+        default:
+            printf("Entrada inválida!");
+            break;
     }
 }
