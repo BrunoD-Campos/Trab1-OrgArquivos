@@ -6,6 +6,7 @@ Pedro Tiago Biffi - 16827777
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "Estruturas.c"
 
 
 // Função para ler o registro de cabeçalho de um arquivo e armazenar em uma struct CABECALHO
