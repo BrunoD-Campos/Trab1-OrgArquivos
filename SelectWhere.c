@@ -5,7 +5,6 @@ Pedro Tiago Biffi - 16827777
 */
 
 void SELECT_WHERE(){
-    
     char arqBIN_nome[32];
     scanf("%s", arqBIN_nome); 
     

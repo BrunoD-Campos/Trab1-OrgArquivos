@@ -36,12 +36,21 @@ void SELECT(){
         return;
     }
 
+    // Flag para definir se todos os registros não estão removidos
+    bool existe_um = false;
+
     while(PosicaoRRN < cabecalho.proxRRN){
         LerRegistroBin(arqBIN, &reg, PosicaoRRN);
-        imprimirRegistro(&reg);
-        printf("\r\n");
+        if(reg.removido == '0')
+        {
+            imprimirRegistro(&reg);
+            existe_um = true;
+            printf("\r\n");
+        }
         PosicaoRRN++;
     }
-    
+    if(!existe_um)
+        printf("Registro inexistente.");
+
     fclose(arqBIN); 
 }
