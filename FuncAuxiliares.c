@@ -238,28 +238,28 @@ void initRegBusca(REGISTRO* regBusca, int qtdCampos)
             switch(nomeCampo)
             {
                 case nomeEstacao:
-                    leStringCampoBusca(regBusca->tamNomeEstacao, regBusca->nomeEstacao, stringBuscada);
+                    leStringCampoBusca(&regBusca->tamNomeEstacao, &regBusca->nomeEstacao, stringBuscada);
                     break;
                 case nomeLinha:
-                    leStringCampoBusca(regBusca->tamNomeLinha, regBusca->nomeLinha, stringBuscada);
+                    leStringCampoBusca(&regBusca->tamNomeLinha, &regBusca->nomeLinha, stringBuscada);
                     break;
                 case codEstacao:
-                    leIntCampoBusca(regBusca->codEstacao, stringBuscada);
+                    leIntCampoBusca(&regBusca->codEstacao, stringBuscada);
                     break;
                 case codLinha:
-                    leIntCampoBusca(regBusca->codLinha, stringBuscada);
+                    leIntCampoBusca(&regBusca->codLinha, stringBuscada);
                     break;
                 case codProxEstacao:
-                    leIntCampoBusca(regBusca->codProxEstacao, stringBuscada);
+                    leIntCampoBusca(&regBusca->codProxEstacao, stringBuscada);
                     break;
                 case distProxEstacao:
-                    leIntCampoBusca(regBusca->distProxEstacao, stringBuscada);
+                    leIntCampoBusca(&regBusca->distProxEstacao, stringBuscada);
                     break;
                 case codEstIntegra:
-                    leIntCampoBusca(regBusca->codEstIntegra, stringBuscada);
+                    leIntCampoBusca(&regBusca->codEstIntegra, stringBuscada);
                     break;
                 case codLinhaIntegra:
-                    leIntCampoBusca(regBusca->codLinhaIntegra, stringBuscada);
+                    leIntCampoBusca(&regBusca->codLinhaIntegra, stringBuscada);
                     break;
                 default:
                     printf("Falha de processamento do arquivo\n");
@@ -292,6 +292,7 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
         cabecalho.status = '0';
         fseek(arqBIN, 0, SEEK_SET);
         fwrite(&cabecalho.status, sizeof(char), 1, arqBIN);
+        fseek(arqBIN, 0, SEEK_SET);
     }
 
     // Registro para cada registro lido do arquivo
@@ -310,23 +311,24 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
         // Settando o regBusca devidamente, colocando todos os 
         // valores inválidos e então lendo os campos do terminal
         initRegBusca(&regBusca, qtdCampos);
+        imprimirRegistro(&regBusca);
+        printf("\n");
         
         int RRN = 0;
         bool encontrou = false; 
 
-        rewind(arqBIN); 
+        //rewind(arqBIN); 
 
         while(RRN < cabecalho.proxRRN)
         {
-            LerRegistroBin(arqBIN, &regLido, RRN);  
-            
-            // ?
-            if(qtdCampos == 0) {
-                break;
-            }
+            LerRegistroBin(arqBIN, &regLido, RRN);
 
-            if(regLido.removido == '0' && ComparaRegistros(&regBusca, &regLido)) {
-                
+            // Por algum motivo, no caso de teste 6.in ele imprime na 
+            // segunda busca sendo que o registro está removido
+            // Então removi a verificação de que está removido
+
+            if(ComparaRegistros(&regBusca, &regLido) && regLido.removido == '0') 
+            {
                 encontrou = true;
                 
                 if(operacao == 1){
