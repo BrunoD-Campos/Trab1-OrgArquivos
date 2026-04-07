@@ -149,7 +149,8 @@ CRITERIO campoParaEnum(char* nomeCampo)
     else return codEstIntegra;
 }
 
-// Mini-função para lermos o inteiro após o nome do campo e armazená-lo no registro de busca
+// Mini-função para lermos o inteiro após o nome do campo e armazená-lo em valorCampo
+// Trata valores NULO, também usada para ler valores na funcionalidade Insert
 void leIntCampoBusca(int* valorCampo, char* strInput)
 {
     // Agora verifica explicitamente a string "NULO"
@@ -161,6 +162,7 @@ void leIntCampoBusca(int* valorCampo, char* strInput)
 }
 
 // Mini-função com mesmo conceito da anterior mas para strings
+// Trata valores NULO, também usada para ler valores na funcionalidade Insert
 void leStringCampoBusca(int* tamCampo, char** stringCampo, char* strInput)
 {
     if(strInput[0] == '\0') // É NULO
