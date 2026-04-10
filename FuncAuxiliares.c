@@ -14,6 +14,8 @@ void imprimeCampoInt(int campo)
     return;
 }
 
+// Imprime um registro na ordem certa a partir de uma struct 
+// de registro lido na memória principal
 void imprimirRegistro(REGISTRO* reg)
 {
     printf("%d %s ", reg->codEstacao, reg->nomeEstacao);
@@ -28,14 +30,17 @@ void imprimirRegistro(REGISTRO* reg)
     imprimeCampoInt(reg->distProxEstacao);
     imprimeCampoInt(reg->codLinhaIntegra);
 
-    // Não usando a função para não imprimir um espaço no final
+    // Não usando a função de impressão para não imprimir um espaço a mais no final
     if(reg->codEstIntegra != -1)
         printf("%d", reg->codEstIntegra);
     else printf("%s", CAMPO_NULO);
+    printf("\r\n");
 
     return;
 }
 
+// Lê o cabeçalho do arquivo em binário e guarda os dados coletados
+// em uma struct com os respectivos campos de um registro de cabeçalho
 void lerCabecalhoBin(FILE* arqBIN, CABECALHO* cabecalho)
 {
     fseek(arqBIN, 0, SEEK_SET);
@@ -49,7 +54,7 @@ void lerCabecalhoBin(FILE* arqBIN, CABECALHO* cabecalho)
     return;
 }
 
-// Função para sobrescrever o registro de cabeçalho do arquivo
+// Função para sobrescrever o registro de cabeçalho do arquivo com novos dados
 void atualizarCabecalho(FILE* arqBIN, CABECALHO* regCabecalho)
 {
     fseek(arqBIN, 0, SEEK_SET);
@@ -61,6 +66,7 @@ void atualizarCabecalho(FILE* arqBIN, CABECALHO* regCabecalho)
     return;
 }
 
+// Lê um registro completo de dado RRN no arquivo em binário e armazena em uma struct registro especificada 
 void LerRegistroBin(FILE* arqBIN, REGISTRO* reg, int PosicaoRRN){
     fseek(arqBIN, 17 + (PosicaoRRN * 80),SEEK_SET); // Coloca o ponteiro em qual RRN estiver em PosicaoRRN
         
@@ -104,7 +110,7 @@ void LerRegistroBin(FILE* arqBIN, REGISTRO* reg, int PosicaoRRN){
     return;
 }
 
-// Função para escrever um registro no arquivo binário
+// Função para escrever um registro no arquivo binário a partir de uma estrutura registro
 void EscreverRegistroBin(FILE *arqBIN, REGISTRO *reg)
 {
     int BytesEscritos = 0;
@@ -137,6 +143,10 @@ void EscreverRegistroBin(FILE *arqBIN, REGISTRO *reg)
     return;
 }
 
+// Função usada para ler o nome de um campo na funcionalidade Select Where e definir
+// qual campo que a próxima Str será armazenada a partir de um tipo enum CRITERIO
+// com os possíveis nomes de cada campo.
+// Usado dentro da função buscaRegistro()
 CRITERIO campoParaEnum(char* nomeCampo)
 {
     if(!strcmp(nomeCampo, "codEstacao")) return codEstacao;
@@ -211,6 +221,7 @@ bool ComparaRegistros(REGISTRO* filtro, REGISTRO* comparado) {
 }
 
 // Função para inicializar um registro de busca usado em BuscaRegistro()
+// e então ler os valores no terminal, armazenando-os devidamente
 void initRegBusca(REGISTRO* regBusca, int qtdCampos)
 {
     regBusca->codEstacao = -2;
@@ -272,8 +283,23 @@ void initRegBusca(REGISTRO* regBusca, int qtdCampos)
     return;
 }
 
+// Função que pula para um registro de RRN especificado e 
+// marca seus campos de removido e proximo devidamente
+void removerRegistro(FILE* arqBIN, int RRN, int proximo)
+{
+    long OffsetRegAtual = 17 + (RRN * 80);
+    fseek(arqBIN, OffsetRegAtual, SEEK_SET);
+    char removido = '1'; 
+    fwrite(&removido, sizeof(char), 1, arqBIN);
+    fwrite(&proximo, sizeof(int), 1, arqBIN);
+    return;
+}
 
-//
+// Função geral para todas funcionalidades que precisam alterar ou mostrar 
+// registros que tenham campos específicos buscados, dependendo do valor operacao.
+// códigos de operação:
+// 1 - SELECT_WHERE    2 - DELETE    3 - UPDATE 
+
 void BuscaRegistro(int operacao, char* arqBIN_nome) {
     
     FILE* arqBIN = fopen(arqBIN_nome, "rb+");
@@ -333,19 +359,11 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
             {
                 encontrou = true;
                 
-                if(operacao == 1){
+                if(operacao == 1)
                     imprimirRegistro(&regLido);
-                    printf("\n");
-                }        
+
                 else if (operacao == 2) {
-                    long OffsetRegAtual = 17 + (RRN * 80);
-                    fseek(arqBIN, OffsetRegAtual, SEEK_SET);
-
-                    regLido.removido = '1'; 
-                    regLido.proximo = cabecalho.topo;
-                    fwrite(&regLido.removido, sizeof(char), 1, arqBIN);
-                    fwrite(&regLido.proximo, sizeof(int), 1, arqBIN);
-
+                    removerRegistro(arqBIN, RRN, cabecalho.topo);
                     cabecalho.topo = RRN;
                     
                     // Se tiver outra estação com mesmo nome não podemos diminuir isto
@@ -372,9 +390,8 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
             printf("Registro inexistente.\n");
         }
         
-        if(operacao == 1) {
+        if(operacao == 1)
             printf("\n"); 
-        }
         
         if(regBusca.nomeEstacao) free(regBusca.nomeEstacao);
         if(regBusca.nomeLinha) free(regBusca.nomeLinha);   

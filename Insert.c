@@ -32,8 +32,6 @@ void lerRegistroTerminal(REGISTRO* novoRegistro)
     ScanQuoteString(strAtual);
     leIntCampoBusca(&novoRegistro->codEstIntegra, strAtual);
 
-    imprimirRegistro(novoRegistro);
-    printf("\n");
     return;
 }
 
@@ -44,11 +42,19 @@ void INSERT()
     
     FILE* arqBIN;
     
-    if(!(arqBIN = fopen(arqBIN_nome,"r")))   // Abre para leitura em binário
+    if(!(arqBIN = fopen(arqBIN_nome,"rb+")))   // Abre para leitura em binário
     {
-        printf("Falha no processamento do arquivo->\n");
+        printf("Falha no processamento do arquivo.\n");
         return;
     }
+
+    CABECALHO cabecalho;
+    lerCabecalhoBin(arqBIN, &cabecalho);
+    rewind(arqBIN);
+
+    // Define o arquivo como inconsistente após abri-lo para escrita
+    char status = '0';
+    fwrite(&status, sizeof(char), 1, arqBIN);
 
     int qtdInserts;
     scanf("%d", &qtdInserts);
@@ -59,11 +65,32 @@ void INSERT()
     {
         REGISTRO registroInserido;
         lerRegistroTerminal(&registroInserido);
+        
+        if(cabecalho.topo == -1)
+        {
+            fseek(arqBIN, TAM_CABECALHO+cabecalho.proxRRN*TAM_REGISTRO, SEEK_SET);
+            EscreverRegistroBin(arqBIN, &registroInserido);
+            cabecalho.proxRRN++;
+        }
+        else
+        {
+            fseek(arqBIN, TAM_CABECALHO+cabecalho.topo*TAM_REGISTRO+1, SEEK_SET);
+            int regRemovidoProximo;
+            fread(&regRemovidoProximo, sizeof(int), 1, arqBIN);
+            fseek(arqBIN, -5, SEEK_CUR);
+            EscreverRegistroBin(arqBIN, &registroInserido);
+            cabecalho.topo = regRemovidoProximo;
+        }
+
+        // free() seguro com base em como leRegistroTerminal foi implementado
         free(registroInserido.nomeEstacao);
         free(registroInserido.nomeLinha);
+
         contador++;
     }
-    
+    cabecalho.status = '1';
+    atualizarCabecalho(arqBIN, &cabecalho);
+
     fclose(arqBIN);
 
     return;

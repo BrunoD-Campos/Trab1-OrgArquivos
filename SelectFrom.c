@@ -17,9 +17,9 @@ void SELECT(){
     
     FILE* arqBIN;
     
-    if(!(arqBIN = fopen(arqBIN_nome,"r")))   // Abre para leitura em binário
+    if(!(arqBIN = fopen(arqBIN_nome,"rb")))   // Abre para leitura em binário
     {
-        printf("Falha no processamento do arquivo->\n");
+        printf("Falha no processamento do arquivo.\n");
         return;
     }
     
@@ -45,7 +45,6 @@ void SELECT(){
         {
             imprimirRegistro(&reg);
             existe_um = true;
-            printf("\r\n");
         }
         PosicaoRRN++;
     }

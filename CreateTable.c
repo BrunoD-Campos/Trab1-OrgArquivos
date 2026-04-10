@@ -4,6 +4,9 @@ Bruno Dias de Campos Filho - 16832658
 Pedro Tiago Biffi - 16827777
 */
 
+#include "Estruturas.c"
+#include <stdio.h>
+
 // Função auxiliar com proteção contra falha de segmentação
 void lerIntCSV(int* campoRegistro, char** separationPtr)
 {
