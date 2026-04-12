@@ -4,20 +4,14 @@ Bruno Dias de Campos Filho - 16832658
 Pedro Tiago Biffi - 16827777
 */
 
-// Bibliotecas padrao do C
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-
-// Definições de tipos
-#include "Estruturas.c" 
-
-// Funções que todos os outros módulos podem usar
 #include "fornecidas.c"
-#include "FuncAuxiliares.c" 
 
-// 6 Funcionalidades
+// Arquivos contendo todo conteúdo auxiliar para as funcionalidades
+#include "Estruturas.c" 
+#include "FuncGerais.c"
+
+// Arquivos de cada uma das 6 funcionalidades
 #include "CreateTable.c"
 #include "SelectFrom.c"
 #include "SelectWhere.c"
@@ -26,10 +20,11 @@ Pedro Tiago Biffi - 16827777
 #include "Update.c"
 
 int main(){
-    //Lendo entrada da funcionalidade
+    // Lendo entrada de qual será a funcionalidade executada
     int comando;
     scanf("%d", &comando);
     
+    // Executando...
     switch (comando){
         case 1:
             CREATE_TABLE();

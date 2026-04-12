@@ -6,10 +6,11 @@ Pedro Tiago Biffi - 16827777
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "FuncAuxiliares.c"
+#include "FuncGerais.c"
 #include "Estruturas.c"
 
-// Função para ler o registro de cabeçalho de um arquivo e armazenar em uma struct CABECALHO
+// Trecho principal da funcionalidade de Select From,
+// onde todos os registros de um arquivo são impressos
 
 void SELECT(){
     char arqBIN_nome[32];
@@ -23,8 +24,9 @@ void SELECT(){
         return;
     }
     
-    int PosicaoRRN = 0; // Começa no registro 0 já que irá ler o arquivo inteiro    
-    REGISTRO reg;   // Registro 
+    // Índice de qual registros estamos lendo no momento
+    int PosicaoRRN = 0;    
+    REGISTRO reg;
 
     CABECALHO cabecalho;
     lerCabecalhoBin(arqBIN, &cabecalho);
@@ -39,6 +41,7 @@ void SELECT(){
     // Flag para definir se todos os registros não estão removidos
     bool existe_um = false;
 
+    // Loop de leitura para o arquivo inteiro
     while(PosicaoRRN < cabecalho.proxRRN){
         LerRegistroBin(arqBIN, &reg, PosicaoRRN);
         if(reg.removido == '0')

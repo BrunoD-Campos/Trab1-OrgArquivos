@@ -1,3 +1,9 @@
+/*
+Arquivo com funções usadas em vários outros processos
+Bruno Dias de Campos Filho - 16832658
+Pedro Tiago Biffi - 16827777
+*/
+
 #ifndef FUNC_AUX
 #define FUNC_AUX
 
@@ -54,7 +60,7 @@ void lerCabecalhoBin(FILE* arqBIN, CABECALHO* cabecalho)
     return;
 }
 
-// Função para sobrescrever o registro de cabeçalho do arquivo com novos dados
+// Função para sobrescrever o registro de cabeçalho do arquivo binário com novos dados
 void atualizarCabecalho(FILE* arqBIN, CABECALHO* regCabecalho)
 {
     fseek(arqBIN, 0, SEEK_SET);
@@ -80,22 +86,15 @@ void LerRegistroBin(FILE* arqBIN, REGISTRO* reg, int PosicaoRRN){
     fread(&reg->codEstIntegra, sizeof(int), 1, arqBIN);
     
     // Para os campos variáveis
-    // Nome de estação -> MUDAR ISSO, POIS Os CAMPOs nomeEstacao e nomeLinha NUNCA SÃO NULOS!!!!!!!!!!!!!!!!!!!
+    // No caso de nome estação, não nos preocupamos em checar por nulo já que nunca serão nulos
     fread(&reg->tamNomeEstacao, sizeof(int),1, arqBIN);
-    if(reg->tamNomeEstacao)
-    {
-        reg->nomeEstacao = (char*) malloc(reg->tamNomeEstacao + 1);
-        fread(reg->nomeEstacao, sizeof(char), reg->tamNomeEstacao, arqBIN);
-        reg->nomeEstacao[reg->tamNomeEstacao] = '\0';
-    }
-    else
-    {
-        reg->nomeEstacao = malloc(LEN_CAMPO_NULO);
-        strcpy(reg->nomeEstacao, CAMPO_NULO);
-    } 
+    reg->nomeEstacao = (char*) malloc(reg->tamNomeEstacao + 1);
+    fread(reg->nomeEstacao, sizeof(char), reg->tamNomeEstacao, arqBIN);
+    reg->nomeEstacao[reg->tamNomeEstacao] = '\0';
 
     // Nome da linha
     fread(&reg->tamNomeLinha, sizeof(int), 1, arqBIN);
+    // Verificação de se é um campo nulo
     if(reg->tamNomeLinha){
         reg->nomeLinha = (char*) malloc(reg->tamNomeLinha + 1);
         fread(reg->nomeLinha, sizeof(char), reg->tamNomeLinha, arqBIN);
@@ -113,8 +112,10 @@ void LerRegistroBin(FILE* arqBIN, REGISTRO* reg, int PosicaoRRN){
 // Função para escrever um registro no arquivo binário a partir de uma estrutura registro
 void EscreverRegistroBin(FILE *arqBIN, REGISTRO *reg)
 {
+    // Contador usado para determinar quantos bytes de lixo escrever no final do registro
     int BytesEscritos = 0;
 
+    // Sequência de writes na ordem certa
     fwrite(&reg->removido, sizeof(char), 1, arqBIN);
     fwrite(&reg->proximo, sizeof(int), 1, arqBIN);
     BytesEscritos += 5; 
@@ -295,11 +296,82 @@ void removerRegistro(FILE* arqBIN, int RRN, int proximo)
     return;
 }
 
-// Função geral para todas funcionalidades que precisam alterar ou mostrar 
-// registros que tenham campos específicos buscados, dependendo do valor operacao.
-// códigos de operação:
-// 1 - SELECT_WHERE    2 - DELETE    3 - UPDATE 
+// Função usada após todas as alterações no arquivo binário para recalcular quantas 
+// estações e pares de estações únicos existem no arquivo, já que podem ter sido alteradas.
+void recalcularContadores(FILE* arqBIN, CABECALHO* cabecalho) 
+{
+    
+    // Aloca as listas dinamicamente
+    char** listaNomesUnicos = malloc(cabecalho->proxRRN * sizeof(char*));
+    ParEstacoes* listaParesUnicos = malloc(cabecalho->proxRRN * sizeof(ParEstacoes));
+    
+    int qtdEstacoesUnicas = 0;
+    int qtdParesUnicos = 0;
 
+    for (int i = 0; i < cabecalho->proxRRN; i++) 
+    {
+        REGISTRO reg;
+        LerRegistroBin(arqBIN, &reg, i);
+        
+        // Apenas conta registros que não estão marcados como removidos
+        if (reg.removido == '0') 
+        {
+            
+            // Para cada registro reg lido, verifica a lista de nomes de estações para ver se já existe
+            bool estacaoJaExiste = false;
+            for (int j = 0; j < qtdEstacoesUnicas; j++) 
+            {
+                if (strcmp(listaNomesUnicos[j], reg.nomeEstacao) == 0) 
+                {
+                    estacaoJaExiste = true;
+                    break; // Achou, não precisa continuar procurando
+                }
+            }
+            
+            // Se varreu toda a lista e não achou, insere no final
+            if (!estacaoJaExiste) {
+                listaNomesUnicos[qtdEstacoesUnicas] = (char*)malloc((strlen(reg.nomeEstacao)+1) * sizeof(char));
+                strcpy(listaNomesUnicos[qtdEstacoesUnicas], reg.nomeEstacao);
+                qtdEstacoesUnicas++;
+            }
+
+            // Mesma lógica mas para os pares de estações
+            if (reg.codProxEstacao != -1) {
+                bool parJaExiste = false;
+                for (int j = 0; j < qtdParesUnicos; j++) {
+                    if (listaParesUnicos[j].origem == reg.codEstacao && listaParesUnicos[j].destino == reg.codProxEstacao) {
+                        parJaExiste = true;
+                        break; // Achou, para a busca
+                    }
+                }
+                
+                // Adicionamos na lista de pares únicos
+                if (!parJaExiste) {
+                    listaParesUnicos[qtdParesUnicos].origem = reg.codEstacao;
+                    listaParesUnicos[qtdParesUnicos].destino = reg.codProxEstacao;
+                    qtdParesUnicos++;
+                }
+            }
+        }
+        
+        if (reg.nomeEstacao) free(reg.nomeEstacao);
+        if (reg.nomeLinha) free(reg.nomeLinha);
+    }
+
+    // Atualiza o cabeçalho original com os contadores absolutos
+    cabecalho->nroEstacoes = qtdEstacoesUnicas;
+    cabecalho->nroParesEstacoes = qtdParesUnicos;
+    
+    // Libera as listas auxiliares
+    for(int i = 0; i < qtdEstacoesUnicas; i++)
+        free(listaNomesUnicos[i]);
+    free(listaParesUnicos);
+}
+
+// Função geral para todas funcionalidades que precisam alterar ou mostrar 
+// registros que tenham campos específicos buscados, dependendo do valor operação.
+// códigos para "operacao":
+// 1-SELECT_WHERE    2-DELETE    3-UPDATE 
 void BuscaRegistro(int operacao, char* arqBIN_nome) {
     
     FILE* arqBIN = fopen(arqBIN_nome, "rb+");
@@ -339,13 +411,9 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
         // Settando o regBusca devidamente, colocando todos os 
         // valores inválidos e então lendo os campos do terminal
         initRegBusca(&regBusca, qtdCampos);
-        imprimirRegistro(&regBusca);
-        printf("\n");
-        
+ 
         int RRN = 0;
         bool encontrou = false; 
-
-        //rewind(arqBIN); 
 
         while(RRN < cabecalho.proxRRN)
         {
@@ -365,41 +433,30 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
                 else if (operacao == 2) {
                     removerRegistro(arqBIN, RRN, cabecalho.topo);
                     cabecalho.topo = RRN;
-                    
-                    // Se tiver outra estação com mesmo nome não podemos diminuir isto
-                    cabecalho.nroEstacoes--;
-                    
-                    // Mesma lógica nesta parte eu acho
-                    if(regLido.codProxEstacao != -1) {
-                        cabecalho.nroParesEstacoes--;
-                    }
-                    
                 }
             }
-            
             
             if(regLido.nomeEstacao) free(regLido.nomeEstacao);
             if(regLido.nomeLinha) free(regLido.nomeLinha);
             
             RRN++;
         }
-        
-        atualizarCabecalho(arqBIN, &cabecalho);
-        
-        if(!encontrou && operacao == 1) {
-            printf("Registro inexistente.\n");
-        }
-        
+
         if(operacao == 1)
-            printf("\n"); 
+        {
+            if(!encontrou)
+                printf("Registro inexistente.\n");
+            printf("\n");
+        }
         
         if(regBusca.nomeEstacao) free(regBusca.nomeEstacao);
         if(regBusca.nomeLinha) free(regBusca.nomeLinha);   
     }
 
     
-    if (operacao == 2) {
+    if (operacao == 2 || operacao == 3) {
         cabecalho.status = '1';
+        recalcularContadores(arqBIN, &cabecalho);
         atualizarCabecalho(arqBIN, &cabecalho);
     }
 

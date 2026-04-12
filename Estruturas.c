@@ -1,7 +1,12 @@
+/*
+Arquivo com estruturas de dados fundamentais para o projeto
+Bruno Dias de Campos Filho - 16832658
+Pedro Tiago Biffi - 16827777
+*/
+
 #ifndef ESTRUTURAS
 #define ESTRUTURAS
 
-// Arquivo com estruturas fundamentais para o projeto
 
 #define TAM_CABECALHO 17
 #define TAM_REGISTRO 80
@@ -9,7 +14,7 @@
 #define CAMPO_NULO "NULO"
 #define LEN_CAMPO_NULO 5
 
-
+// Struct para o registro de cabeçalho do arquivo binário
 typedef struct
 {
     char status;
@@ -17,8 +22,10 @@ typedef struct
     int proxRRN;
     int nroEstacoes;
     int nroParesEstacoes;
-} CABECALHO;
+}CABECALHO;
 
+// Struct para cada registro de dados do arquivo binário,
+// também usado na transferência de registros do .csv pro .bin
 typedef struct
 {
     char removido;
@@ -35,6 +42,8 @@ typedef struct
     char* nomeLinha;
 } REGISTRO;
 
+// Tipo enum para ajudar a definir qual campo foi lido como critério de busca
+// em SELECT_WHERE(), para então armazenar o valor de tal campo corretamente
 typedef enum
 {
     codEstacao,         // 0
@@ -47,10 +56,12 @@ typedef enum
     codEstIntegra       // 7
 }CRITERIO;
 
+// Struct usado na contagem de pares diferentes presentes no arquivo
 typedef struct
 {
-    char** nomeEstacao;
-    int tamLista;
-} ListaNomesEstacao;
+    int origem;
+    int destino;
+}ParEstacoes;
+
 
 #endif
