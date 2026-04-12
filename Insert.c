@@ -18,22 +18,28 @@ void lerRegistroTerminal(REGISTRO* novoRegistro)
 
     char strAtual[50] = "";
 
-    ScanQuoteString(strAtual);
-    leIntCampoBusca(&novoRegistro->codEstacao, strAtual);
-    ScanQuoteString(strAtual);
-    leStringCampoBusca(&novoRegistro->tamNomeEstacao, &novoRegistro->nomeEstacao, strAtual);
-    ScanQuoteString(strAtual);
-    leIntCampoBusca(&novoRegistro->codLinha, strAtual);
-    ScanQuoteString(strAtual);
-    leStringCampoBusca(&novoRegistro->tamNomeLinha, &novoRegistro->nomeLinha, strAtual);
-    ScanQuoteString(strAtual);
-    leIntCampoBusca(&novoRegistro->codProxEstacao, strAtual);
-    ScanQuoteString(strAtual);
-    leIntCampoBusca(&novoRegistro->distProxEstacao, strAtual);
-    ScanQuoteString(strAtual);
-    leIntCampoBusca(&novoRegistro->codLinhaIntegra, strAtual);
-    ScanQuoteString(strAtual);
-    leIntCampoBusca(&novoRegistro->codEstIntegra, strAtual);
+    #define LE_INT(StringAtual, campo) \
+        ScanQuoteString(StringAtual); \
+        leIntCampoBusca(&novoRegistro->campo, StringAtual);
+
+    #define LE_STRING(StringAtual, campo1, campo2) \
+        ScanQuoteString(StringAtual); \
+        leStringCampoBusca(&novoRegistro->campo1, &novoRegistro->campo2, StringAtual);
+    
+        
+    LE_INT(strAtual, codEstacao);
+    LE_STRING(strAtual, tamNomeEstacao, nomeEstacao);
+    
+    LE_INT(strAtual, codLinha);
+    LE_STRING(strAtual, tamNomeLinha, nomeLinha)
+    
+    LE_INT(strAtual, codProxEstacao);
+    LE_INT(strAtual, distProxEstacao);
+    LE_INT(strAtual, codLinhaIntegra);
+    LE_INT(strAtual, codEstIntegra);
+
+    #undef LE_INT
+    #undef LE_STRING
 
     return;
 }
