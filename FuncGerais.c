@@ -365,6 +365,7 @@ void recalcularContadores(FILE* arqBIN, CABECALHO* cabecalho)
     // Libera as listas auxiliares
     for(int i = 0; i < qtdEstacoesUnicas; i++)
         free(listaNomesUnicos[i]);
+    free(listaNomesUnicos);
     free(listaParesUnicos);
 }
 
