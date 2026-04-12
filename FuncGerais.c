@@ -382,7 +382,7 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
     FILE* arqBIN = fopen(arqBIN_nome, "rb+");
     
     if (arqBIN == NULL) {
-        printf("Falha ao abrir o arquivo\n");
+        printf("Falha no processamento do arquivo.\n");
         return;
     }
 

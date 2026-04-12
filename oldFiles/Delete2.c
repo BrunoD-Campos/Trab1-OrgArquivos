@@ -1,5 +1,5 @@
 /*
-Implementação da funcionalidade 3 de Select Where 
+Implementação da funcionalidade 4 de Delete 
 Bruno Dias de Campos Filho - 16832658
 Pedro Tiago Biffi - 16827777
 */
@@ -25,24 +25,29 @@ void outroBuscaRegistro(FILE* arqBIN, CABECALHO* cabecalho, REGISTRO* regBusca, 
     return;
 }
 
-
 void SELECT_WHERE(){
     
     char arqBIN_nome[32];
     scanf("%s", arqBIN_nome); 
     
-    FILE* arqBIN = fopen(arqBIN_nome, "rb");
+    FILE* arqBIN = fopen(arqBIN_nome, "rb+");
     
     if (arqBIN == NULL) {
         printf("Falha ao abrir o arquivo\n");
         return;
     }
 
-    int qtdBuscas;  
-    scanf("%d", &qtdBuscas);
+    int qtdDeletes;  
+    scanf("%d", &qtdDeletes);
 
     CABECALHO cabecalho;
     lerCabecalhoBin(arqBIN, &cabecalho);
+
+    // Marca o arquivo como incosistento durante o processo
+    cabecalho.status = '0';
+    fseek(arqBIN, 0, SEEK_SET);
+    fwrite(&cabecalho.status, sizeof(char), 1, arqBIN);
+    fseek(arqBIN, 0, SEEK_SET);
 
     // Registro para cada registro lido do arquivo
     REGISTRO regLido;
@@ -50,10 +55,9 @@ void SELECT_WHERE(){
     REGISTRO regBusca;
     
     int contador = 0;
-    while (contador < qtdBuscas)
+    while (contador < qtdDeletes)
     {
         int RRN = 0;
-        bool existe_um = false;
 
         int qtdCampos = 0;
         scanf("%d", &qtdCampos);
@@ -69,8 +73,8 @@ void SELECT_WHERE(){
             // Verificação necessária pois é possível que BuscaRegistro já tenha passado de proxRRN
             if(RRN < cabecalho.proxRRN)
             {
-                imprimirRegistro(&regLido);
-                existe_um = true;
+                removerRegistro(arqBIN, RRN, cabecalho.topo);
+                cabecalho.topo = RRN;
             }
             
             if(regLido.nomeEstacao) free(regLido.nomeEstacao);
@@ -80,13 +84,12 @@ void SELECT_WHERE(){
         if(regBusca.nomeEstacao) free(regBusca.nomeEstacao);
         if(regBusca.nomeLinha) free(regBusca.nomeLinha);
 
-        if(!existe_um)
-            printf("Registro inexistente.\n");
-        printf("\n");
-        
         contador++;
     }
 
-    fclose(arqBIN);
-    
+    cabecalho.status = '1';
+    recalcularContadores(arqBIN, &cabecalho);
+    atualizarCabecalho(arqBIN, &cabecalho);
+
+    fclose(arqBIN);   
 }
