@@ -373,96 +373,30 @@ void recalcularContadores(FILE* arqBIN, CABECALHO* cabecalho)
     free(listaParesUnicos);
 }
 
-// Função geral para todas funcionalidades que precisam alterar ou mostrar 
-// registros que tenham campos específicos buscados, dependendo do valor operação.
-// códigos para "operacao":
-// 1-SELECT_WHERE    2-DELETE    3-UPDATE 
-void BuscaRegistro(int operacao, char* arqBIN_nome) {
-    
-    FILE* arqBIN = fopen(arqBIN_nome, "rb+");
-    
-    if (arqBIN == NULL) {
-        printf("Falha no processamento do arquivo.\n");
-        return;
-    }
-
-    int qtdBuscas;  
-    scanf("%d", &qtdBuscas);
-
-    CABECALHO cabecalho;
-    lerCabecalhoBin(arqBIN, &cabecalho);
-    
-    // Marca o arquivo como inconsistente durante a operação
-    if (operacao == 2) {
-        cabecalho.status = '0';
-        fseek(arqBIN, 0, SEEK_SET);
-        fwrite(&cabecalho.status, sizeof(char), 1, arqBIN);
-        fseek(arqBIN, 0, SEEK_SET);
-    }
-
-    // Registro para cada registro lido do arquivo
-    REGISTRO regLido;
-    int contador = 0;
-
-    // Loop principal de buscas
-    while(contador < qtdBuscas)
+// Percorre arqBIN até encontrar o primeiro regLido que seja igual à regBusca
+void BuscaRegistro(FILE* arqBIN, CABECALHO* cabecalho, REGISTRO* regBusca, REGISTRO* regLido, int* RRN) 
+{
+    while(*RRN < cabecalho->proxRRN)
     {
-        contador++;
-        REGISTRO regBusca;
-        
-        int qtdCampos = 0;
-        scanf("%d", &qtdCampos);
-        
-        // Settando o regBusca devidamente, colocando todos os 
-        // valores inválidos e então lendo os campos do terminal
-        initRegBusca(&regBusca, qtdCampos);
- 
-        int RRN = 0;
-        bool encontrou = false; 
+        LerRegistroBin(arqBIN, regLido, *RRN);
+        (*RRN)++;
 
-        while(RRN < cabecalho.proxRRN)
+        // Se encontramos o registro procurado
+        if(ComparaRegistros(regBusca, regLido) && regLido->removido == '0') 
+            return;
+        
+
+        if(regLido->nomeEstacao)
         {
-            LerRegistroBin(arqBIN, &regLido, RRN);
-
-            // Se encontramos o registro procurado
-            if(ComparaRegistros(&regBusca, &regLido) && regLido.removido == '0') 
-            {
-                encontrou = true;
-                
-                if(operacao == 1)
-                    imprimirRegistro(&regLido);
-
-                else if (operacao == 2) {
-                    removerRegistro(arqBIN, RRN, cabecalho.topo);
-                    cabecalho.topo = RRN;
-                }
-            }
-            
-            if(regLido.nomeEstacao) free(regLido.nomeEstacao);
-            if(regLido.nomeLinha) free(regLido.nomeLinha);
-            
-            RRN++;
+            free(regLido->nomeEstacao);
+            regLido->nomeEstacao = NULL;
         }
-
-        if(operacao == 1)
-        {
-            if(!encontrou)
-                printf("Registro inexistente.\n");
-            printf("\n");
+        if(regLido->nomeLinha) 
+        { 
+            free(regLido->nomeLinha);
+            regLido->nomeLinha = NULL;
         }
-        
-        if(regBusca.nomeEstacao) free(regBusca.nomeEstacao);
-        if(regBusca.nomeLinha) free(regBusca.nomeLinha);   
     }
-
-    
-    if (operacao == 2 || operacao == 3) {
-        cabecalho.status = '1';
-        recalcularContadores(arqBIN, &cabecalho);
-        atualizarCabecalho(arqBIN, &cabecalho);
-    }
-
-    fclose(arqBIN);
     return;
 }
 

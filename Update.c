@@ -36,23 +36,29 @@ void UPDATE() {
 
     // Loop executado qtdUpdates (n na especificação) vezes, conforme solicitado na entrada
     for(int i = 0; i < qtdUpdates; i++) {
+        // Quantidade de pares nomeCampo e valorCampo
         int m;
         scanf("%d", &m);
+
         REGISTRO regBusca;
         initRegBusca(&regBusca, m);
 
+        REGISTRO regLido;
+
+        // Quantidade de alterações a serem feitas nos registros encontrados
         int p;
         scanf("%d", &p);
+
         REGISTRO regAtualiza;
         initRegBusca(&regAtualiza, p);
-
+        
+        int RRN = 0;
         // Faz busca linear no arquivo para atualizar os registros, caso eles sejam iguais com o que procuramos
-        for(int RRN = 0; RRN < cabecalho.proxRRN; RRN++) {
-            REGISTRO regLido;
-            LerRegistroBin(arqBIN, &regLido, RRN);
+        while(RRN < cabecalho.proxRRN) {
+            BuscaRegistro(arqBIN, &cabecalho, &regBusca, &regLido, &RRN);
 
-            if(regLido.removido == '0' && ComparaRegistros(&regBusca, &regLido)) {
-                
+            if(RRN < cabecalho.proxRRN)
+            {
                 // Macros locais para deixar o código mais legível
                 #define ATUALIZA_INT(campo) \
                     if(regAtualiza.campo != -2) regLido.campo = regAtualiza.campo
@@ -81,7 +87,7 @@ void UPDATE() {
                 #undef ATUALIZA_STR
 
                 // Volta o ponteiro para o começo do registro e sobescreve com os novos campos 
-                fseek(arqBIN, TAM_CABECALHO + (RRN * TAM_REGISTRO), SEEK_SET);
+                fseek(arqBIN, TAM_CABECALHO + ((RRN-1) * TAM_REGISTRO), SEEK_SET);
                 EscreverRegistroBin(arqBIN, &regLido);
             }
 
