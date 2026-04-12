@@ -225,6 +225,8 @@ bool ComparaRegistros(REGISTRO* filtro, REGISTRO* comparado) {
 // e então ler os valores no terminal, armazenando-os devidamente
 void initRegBusca(REGISTRO* regBusca, int qtdCampos)
 {
+    // Inicializa com valores não encontrados no arquivo normalmente para
+    // sinalizar na comparação que estes campos não deverão ser comparados
     regBusca->codEstacao = -2;
     regBusca->codLinha = -2;
     regBusca->codProxEstacao = -2;
@@ -234,6 +236,7 @@ void initRegBusca(REGISTRO* regBusca, int qtdCampos)
     regBusca->nomeEstacao = NULL;
     regBusca->nomeLinha = NULL;
 
+    // Loop para ler os campos do terminal e guardar no registro de busca
     for(int i = 0; i < qtdCampos; i++)  
         {
             char idCampo[32]; 
@@ -249,6 +252,7 @@ void initRegBusca(REGISTRO* regBusca, int qtdCampos)
                 scanf("%s", stringBuscada);
             }
 
+            // Define qual foi o nome do campo lido para armazenar nele
             switch(nomeCampo)
             {
                 case nomeEstacao:
@@ -420,10 +424,7 @@ void BuscaRegistro(int operacao, char* arqBIN_nome) {
         {
             LerRegistroBin(arqBIN, &regLido, RRN);
 
-            // Por algum motivo, no caso de teste 6.in ele imprime na 
-            // segunda busca sendo que o registro está removido
-            // Então removi a verificação de que está removido
-
+            // Se encontramos o registro procurado
             if(ComparaRegistros(&regBusca, &regLido) && regLido.removido == '0') 
             {
                 encontrou = true;

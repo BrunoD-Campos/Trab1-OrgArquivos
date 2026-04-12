@@ -11,7 +11,7 @@ Pedro Tiago Biffi - 16827777
 #include "FuncGerais.c"
 #include "Estruturas.c"
 
-// parte principal da funcionalidade de Update, que atualiza campos
+// Parte principal da funcionalidade de Update, que atualiza campos
 // específicos de registros conforme o que foi pedido na busca.
 void UPDATE() {
     char arqBIN_nome[32];
@@ -34,9 +34,8 @@ void UPDATE() {
     int qtdUpdates;
     scanf("%d", &qtdUpdates);
 
-    // Loop executado n vezes, conforme solicitado na entrada
+    // Loop executado qtdUpdates (n na especificação) vezes, conforme solicitado na entrada
     for(int i = 0; i < qtdUpdates; i++) {
-        
         int m;
         scanf("%d", &m);
         REGISTRO regBusca;
@@ -47,7 +46,7 @@ void UPDATE() {
         REGISTRO regAtualiza;
         initRegBusca(&regAtualiza, p);
 
-        // faz busca linear no arquivo para atualizar os registros, caso eles sejam iguais
+        // Faz busca linear no arquivo para atualizar os registros, caso eles sejam iguais com o que procuramos
         for(int RRN = 0; RRN < cabecalho.proxRRN; RRN++) {
             REGISTRO regLido;
             LerRegistroBin(arqBIN, &regLido, RRN);
@@ -81,7 +80,7 @@ void UPDATE() {
                 #undef ATUALIZA_INT
                 #undef ATUALIZA_STR
 
-                // Volta o ponteiro e sobescreve os registros
+                // Volta o ponteiro para o começo do registro e sobescreve com os novos campos 
                 fseek(arqBIN, TAM_CABECALHO + (RRN * TAM_REGISTRO), SEEK_SET);
                 EscreverRegistroBin(arqBIN, &regLido);
             }
@@ -107,6 +106,7 @@ void UPDATE() {
 
     }
 
+    // Tornando o arquivo consistente de novo e atualizando seus contadoes de estação e par
     cabecalho.status = '1';
     recalcularContadores(arqBIN, &cabecalho);
     atualizarCabecalho(arqBIN, &cabecalho);
