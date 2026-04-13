@@ -8,7 +8,6 @@ Pedro Tiago Biffi - 16827777
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "FuncGerais.c"
 #include "Estruturas.c"
 
 // Parte principal da funcionalidade de Update, que atualiza campos

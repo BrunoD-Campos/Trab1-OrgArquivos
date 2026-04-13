@@ -4,7 +4,6 @@ Bruno Dias de Campos Filho - 16832658
 Pedro Tiago Biffi - 16827777
 */
 
-#include "FuncGerais.c"
 #include "Estruturas.c"
 #include <stdio.h>
 #include <stdlib.h>

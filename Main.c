@@ -9,7 +9,8 @@ Pedro Tiago Biffi - 16827777
 
 // Arquivos contendo todo conteúdo auxiliar para as funcionalidades
 #include "Estruturas.c" 
-#include "FuncGerais.c"
+#include "ArquivoIO.c"
+#include "LogicaBusca.c"
 
 // Arquivos de cada uma das 6 funcionalidades
 #include "CreateTable.c"

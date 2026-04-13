@@ -6,7 +6,6 @@ Pedro Tiago Biffi - 16827777
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "FuncGerais.c"
 #include "Estruturas.c"
 
 // Função usada para ler todos os campos na ordem certa diretamente do terminal onde o 

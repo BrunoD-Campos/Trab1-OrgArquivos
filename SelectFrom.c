@@ -6,7 +6,6 @@ Pedro Tiago Biffi - 16827777
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "FuncGerais.c"
 #include "Estruturas.c"
 
 // Trecho principal da funcionalidade de Select From,
